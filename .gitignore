@@ -1,0 +1,36 @@
+# === Python関連 ===
+__pycache__/
+*.pyc
+.venv/
+
+# === OS / エディタ関連 ===
+.DS_Store
+
+# === ログ ===
+*.log
+
+# === ツールのキャッシュ（data/配下） ===
+data/.cache/
+data/.config/
+data/.torch/
+data/.wget-hsts
+data/.nv/
+
+# === 生データ / 中間データ ===
+data/raw_videos/
+data/clips/
+data/metadata/
+data/tmp/
+
+# === UI実行に不要なモデル資産 ===
+data/pymaf/
+data/models/
+
+# === 生成物（outputsはディレクトリだけ残し、中身は除外） ===
+data/outputs/**
+!data/outputs/
+
+
+# === 開発/パイプライン用（UI実行に不要） ===
+docker/
+scripts/
