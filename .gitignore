@@ -1,0 +1,38 @@
+.venv/
+batch_pymaf.log
+.DS_Store
+__pycache__/
+*.pyc
+
+# Local tool caches
+data/.cache/
+data/.config/
+data/.torch/
+data/.wget-hsts
+data/.nv/
+
+# Raw assets / intermediate data
+data/raw_videos/
+data/clips/
+data/metadata/
+
+# Generated outputs (non-UI)
+data/outputs/bgm/
+data/outputs/meshes/
+data/outputs/pymaf/
+data/outputs/skeletons/
+
+# PyMAF assets (not needed to run UI)
+data/pymaf/
+data/tmp/
+
+# SMPL models (not needed to run UI)
+data/models/
+
+# Template outputs: keep metadata + series for UI, exclude videos
+data/outputs/templates/**
+!data/outputs/templates/index.json
+
+# Development / pipeline tooling (not required to run UI)
+docker/
+scripts/
