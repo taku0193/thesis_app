@@ -49,6 +49,7 @@ const state = {
   sessionEnded: false,
   visionRunning: false,
   visionBusy: false,
+  cameraStream: null,
 };
 
 const ALLOWED_CLIP_IDS = new Set([
@@ -120,9 +121,12 @@ const els = {
   feedback: document.getElementById("feedback"),
   scoreFill: document.getElementById("score-fill"),
   scoreValue: document.getElementById("score-value"),
+  scoreGauge: document.getElementById("score-gauge"),
   shuffleBtn: document.getElementById("shuffle-btn"),
   startCamera: document.getElementById("start-camera"),
   cameraVideo: document.getElementById("camera-video"),
+  cameraFrame: document.getElementById("camera-frame"),
+  captureStatus: document.getElementById("capture-status"),
   overlay: document.getElementById("overlay-canvas"),
   duration: document.getElementById("duration"),
   autoToggle: document.getElementById("auto-toggle"),
@@ -130,6 +134,7 @@ const els = {
   sessionTime: document.getElementById("session-time"),
   sessionFill: document.getElementById("session-fill"),
   cheerMessage: document.getElementById("cheer-message"),
+  coachMessage: document.getElementById("coach-message"),
   exerciseAlert: document.getElementById("exercise-alert"),
   minuteScore: document.getElementById("minute-score"),
   heartBadge: document.getElementById("heart-badge"),
@@ -165,6 +170,34 @@ function assetUrl(path) {
   }
   const clean = path.replace(/^\/+/, "");
   return `${apiBase()}/api/static/${clean}`;
+}
+
+function setCoachMessage(message) {
+  if (els.coachMessage) {
+    els.coachMessage.textContent = message;
+  }
+}
+
+function setCaptureStatus(label, active = false) {
+  if (els.captureStatus) {
+    els.captureStatus.replaceChildren();
+    const dot = document.createElement("span");
+    dot.className = "hud-dot";
+    els.captureStatus.append(dot, document.createTextNode(label));
+  }
+  if (els.cameraFrame) {
+    els.cameraFrame.classList.toggle("active", active);
+  }
+}
+
+function setAutoUi(enabled) {
+  if (!els.autoToggle) {
+    return;
+  }
+  els.autoToggle.textContent = enabled ? "Auto: On" : "Auto: Off";
+  els.autoToggle.classList.toggle("primary", enabled);
+  els.autoToggle.classList.toggle("ghost", !enabled);
+  els.autoToggle.setAttribute("aria-pressed", String(enabled));
 }
 
 const MP_INDEX = {
@@ -295,7 +328,8 @@ function renderTemplate(entry) {
     els.exerciseMeta.textContent = "";
     els.metrics.innerHTML = "";
     els.assetLinks.innerHTML = "";
-    clearPreview();
+    els.templateVideo.removeAttribute("src");
+    els.templateVideo.style.display = "none";
     return;
   }
 
@@ -310,10 +344,10 @@ function renderTemplate(entry) {
   els.exerciseMeta.textContent = `${meta.body_part || ""} · ${meta.intensity || ""} · ${entry.clip_id}`;
 
   els.metrics.innerHTML = `
-    <div>Difficulty: ${formatMetric(metrics.difficulty_score)}</div>
-    <div>Speed: ${formatMetric(metrics.speed_mean)}</div>
-    <div>ROM: ${formatMetric(metrics.rom_mean)}</div>
-    <div>People: ${people.length}</div>
+    <div><span>Difficulty</span><strong>${formatMetric(metrics.difficulty_score)}</strong></div>
+    <div><span>Speed</span><strong>${formatMetric(metrics.speed_mean)}</strong></div>
+    <div><span>Range of motion</span><strong>${formatMetric(metrics.rom_mean)}</strong></div>
+    <div><span>Subjects</span><strong>${people.length}</strong></div>
   `;
 
   els.assetLinks.innerHTML = `
@@ -325,9 +359,7 @@ function renderTemplate(entry) {
   if (entryAssets.template_video) {
     els.templateVideo.src = assetUrl(entryAssets.template_video);
     els.templateVideo.style.display = "block";
-    if (state.bgmStarted) {
-      els.templateVideo.play().catch(() => {});
-    }
+    els.templateVideo.play().catch(() => {});
   } else {
     els.templateVideo.removeAttribute("src");
     els.templateVideo.style.display = "none";
@@ -358,11 +390,22 @@ els.shuffleBtn.addEventListener("click", () => {
 
 async function startCamera() {
   if (!navigator.mediaDevices?.getUserMedia) {
+    setCaptureStatus("CAMERA UNSUPPORTED");
+    setCoachMessage("このブラウザではカメラを利用できません。");
+    return;
+  }
+  if (state.cameraStream) {
     return;
   }
   try {
+    els.startCamera.disabled = true;
+    els.startCamera.setAttribute("aria-busy", "true");
+    els.startCamera.textContent = "接続中…";
+    setCaptureStatus("INITIALIZING");
+    setCoachMessage("カメラとAIモデルを初期化しています。");
     await initHrCsvLogger();
     const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    state.cameraStream = stream;
     els.cameraVideo.srcObject = stream;
     els.cameraVideo.onloadedmetadata = () => {
       els.overlay.width = els.cameraVideo.videoWidth;
@@ -372,10 +415,18 @@ async function startCamera() {
     if (els.cameraVideo.paused) {
       els.cameraVideo.play().catch(() => {});
     }
+    setCaptureStatus("CAMERA ONLINE", true);
+    els.startCamera.textContent = "BGMを準備中…";
+    setCoachMessage("映像を認識しました。AI BGMを生成しています。");
     startRppg();
     startBgm();
   } catch (err) {
-    // Ignore camera errors for now.
+    state.cameraStream = null;
+    els.startCamera.disabled = false;
+    els.startCamera.setAttribute("aria-busy", "false");
+    els.startCamera.textContent = "セッション開始";
+    setCaptureStatus("CAMERA ERROR");
+    setCoachMessage("カメラを開始できませんでした。アクセス許可を確認してください。");
   }
 }
 
@@ -429,14 +480,13 @@ function updateSessionTimer() {
   els.sessionTime.textContent = `${minutes}:${seconds}`;
   const progress = Math.min(1, elapsed / SESSION_SECONDS);
   els.sessionFill.style.width = `${progress * 100}%`;
+  els.sessionFill.parentElement?.setAttribute(
+    "aria-valuenow",
+    String(Math.round(progress * 100))
+  );
   if (remaining === 0 && !state.sessionEnded) {
-    state.sessionEnded = true;
-    stopAutoCycle();
-    showSessionSummary(elapsed);
-    if (state.sessionTimer) {
-      window.clearInterval(state.sessionTimer);
-      state.sessionTimer = null;
-    }
+    endSession();
+    return;
   }
 
   if (elapsed >= state.nextCheerAt) {
@@ -451,11 +501,11 @@ function updateSessionTimer() {
 }
 
 function showCheerMessage() {
-  if (!els.cheerMessage) {
+  if (!els.coachMessage) {
     return;
   }
   const message = CHEER_MESSAGES[Math.floor(Math.random() * CHEER_MESSAGES.length)];
-  els.cheerMessage.textContent = message;
+  setCoachMessage(message);
   els.cheerMessage.classList.add("pulse");
   window.setTimeout(() => {
     els.cheerMessage.classList.remove("pulse");
@@ -610,18 +660,94 @@ async function closeHrCsvWriter() {
   }
 }
 
+function stopLiveRuntime() {
+  stopAutoCycle();
+
+  if (state.scoringTimer) {
+    window.clearInterval(state.scoringTimer);
+    state.scoringTimer = null;
+  }
+
+  state.visionRunning = false;
+  state.visionBusy = false;
+  try {
+    state.pose?.close?.();
+    state.faceMesh?.close?.();
+  } catch (err) {
+    // MediaPipe may already be closing.
+  }
+  state.pose = null;
+  state.faceMesh = null;
+  state.latestLandmarks = null;
+  state.latestFaceLandmarks = null;
+
+  state.rppgRunning = false;
+  if (state.rppgSampleTimer) {
+    window.clearInterval(state.rppgSampleTimer);
+    state.rppgSampleTimer = null;
+  }
+  if (state.rppgEstimateTimer) {
+    window.clearInterval(state.rppgEstimateTimer);
+    state.rppgEstimateTimer = null;
+  }
+  state.rppgWorker?.terminate();
+  state.rppgWorker = null;
+  state.rppgBpm = null;
+
+  state.bgmRunning = false;
+  if (state.bgmRequestTimer) {
+    window.clearTimeout(state.bgmRequestTimer);
+    state.bgmRequestTimer = null;
+  }
+  if (state.bgmFadeTimer) {
+    window.clearTimeout(state.bgmFadeTimer);
+    state.bgmFadeTimer = null;
+  }
+  [state.bgmCurrent, state.bgmNext].forEach((audio) => {
+    if (!audio) {
+      return;
+    }
+    audio.pause();
+    audio.removeAttribute("src");
+  });
+  state.bgmCurrent = null;
+  state.bgmNext = null;
+  state.bgmStarted = false;
+
+  state.cameraStream?.getTracks().forEach((track) => track.stop());
+  state.cameraStream = null;
+  els.cameraVideo.srcObject = null;
+  els.overlay.getContext("2d")?.clearRect(0, 0, els.overlay.width, els.overlay.height);
+  els.templateVideo?.pause();
+}
+
 function endSession() {
-  if (!state.sessionStart || state.sessionEnded) {
+  const wasActive = Boolean(state.cameraStream || state.bgmRunning || state.sessionStart);
+  if (!wasActive) {
     return;
   }
-  const elapsed = Math.floor((performance.now() - state.sessionStart) / 1000);
+  const elapsed = state.sessionStart
+    ? Math.floor((performance.now() - state.sessionStart) / 1000)
+    : 0;
   state.sessionEnded = true;
-  stopAutoCycle();
   if (state.sessionTimer) {
     window.clearInterval(state.sessionTimer);
     state.sessionTimer = null;
   }
-  showSessionSummary(elapsed);
+  if (state.sessionStart) {
+    showSessionSummary(elapsed);
+  } else {
+    closeHrCsvWriter();
+  }
+  stopLiveRuntime();
+  state.sessionStart = null;
+  els.startCamera.disabled = false;
+  els.startCamera.setAttribute("aria-busy", "false");
+  els.startCamera.textContent = "セッション開始";
+  els.heartBadge.textContent = "♥ -- BPM";
+  setAutoUi(false);
+  setCaptureStatus("SESSION COMPLETE");
+  setCoachMessage("セッションを終了しました。おつかれさまでした。");
 }
 
 function startRppg() {
@@ -775,18 +901,25 @@ function computeFaceRoi(landmarks, width, height) {
 }
 
 function announceMinuteScore() {
-  if (!els.minuteScore || !state.scoreHistory.length) {
+  if (!els.minuteScore || !state.sessionScores.length) {
     return;
   }
   const now = performance.now();
   const oneMinuteAgo = now - MINUTE_INTERVAL * 1000;
-  const samples = state.scoreHistory.filter((item) => item.time >= oneMinuteAgo);
+  const samples = state.sessionScores.filter((item) => item.time >= oneMinuteAgo);
   if (!samples.length) {
     return;
   }
   const avg = samples.reduce((sum, item) => sum + item.score, 0) / samples.length;
   const message = avg >= 80 ? "Excellent!" : avg >= 60 ? "Good!" : "Keep going!";
-  els.minuteScore.textContent = `1分スコア: ${avg.toFixed(0)}点 · ${message}`;
+  els.minuteScore.replaceChildren();
+  const signal = document.createElement("span");
+  signal.className = "signal-icon";
+  signal.setAttribute("aria-hidden", "true");
+  els.minuteScore.append(
+    signal,
+    document.createTextNode(`1分スコア: ${avg.toFixed(0)}点 · ${message}`)
+  );
   els.minuteScore.classList.add("show");
   window.setTimeout(() => {
     els.minuteScore.classList.remove("show");
@@ -914,13 +1047,19 @@ function updateScore(score, worstIndex) {
   const clamped = Math.max(0, Math.min(100, score));
   els.scoreFill.style.width = `${clamped}%`;
   els.scoreValue.textContent = `${clamped.toFixed(0)}`;
+  els.scoreGauge?.style.setProperty("--score", clamped.toFixed(1));
+  els.scoreFill.parentElement?.setAttribute("aria-valuenow", String(Math.round(clamped)));
   state.lastScore = clamped;
 
   if (clamped >= 60) {
     els.judgement.textContent = "Good";
+    els.judgement.classList.add("good");
+    els.judgement.classList.remove("fight");
     state.lastGrade = "Good";
   } else {
     els.judgement.textContent = "Fight!";
+    els.judgement.classList.add("fight");
+    els.judgement.classList.remove("good");
     state.lastGrade = "Fight!";
   }
 
@@ -1004,11 +1143,13 @@ async function requestBgm() {
         }
       }
       console.error(`BGM generate failed (${response.status})${detail}`);
+      setCoachMessage(`BGM生成に失敗しました${detail}。再試行しています。`);
       return null;
     }
     const data = await response.json();
     return data?.url || null;
   } catch (err) {
+    setCoachMessage("BGMサーバーへ接続できません。再試行しています。");
     return null;
   } finally {
     state.bgmRequestInFlight = false;
@@ -1023,11 +1164,17 @@ function startSessionWithBgm() {
     return;
   }
   state.bgmStarted = true;
+  els.startCamera.disabled = true;
+  els.startCamera.setAttribute("aria-busy", "false");
+  els.startCamera.textContent = "セッション進行中";
+  setCaptureStatus("LIVE TRACKING", true);
+  setCoachMessage("解析を開始しました。お手本に合わせて動きましょう。");
   if (els.sessionSummary) {
     els.sessionSummary.classList.remove("show");
   }
   startSessionTimer();
   startAutoCycle();
+  setAutoUi(true);
   startScoring();
   if (els.templateVideo) {
     els.templateVideo.play().catch(() => {});
@@ -1113,6 +1260,9 @@ async function playNextBgm() {
     return;
   }
   const url = await requestBgm();
+  if (!state.bgmRunning) {
+    return;
+  }
   if (!url) {
     scheduleNextBgmRequest(2000);
     return;
@@ -1331,14 +1481,10 @@ function announceNextExercise(nextTemplate) {
 els.autoToggle.addEventListener("click", () => {
   if (state.autoTimer) {
     stopAutoCycle();
-    els.autoToggle.textContent = "Auto: Off";
-    els.autoToggle.classList.remove("primary");
-    els.autoToggle.classList.add("ghost");
+    setAutoUi(false);
   } else {
     startAutoCycle();
-    els.autoToggle.textContent = "Auto: On";
-    els.autoToggle.classList.remove("ghost");
-    els.autoToggle.classList.add("primary");
+    setAutoUi(true);
   }
 });
 
