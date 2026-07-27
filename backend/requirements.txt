@@ -1,3 +1,8 @@
 fastapi==0.115.6
 uvicorn[standard]==0.32.1
+# AudioCraft 1.3.0 pins PyTorch 2.1. Its compiled extensions are not
+# compatible with NumPy 2, and newer Transformers releases require a newer
+# PyTorch version.
+numpy==1.26.4
+transformers==4.39.3
 audiocraft==1.3.0

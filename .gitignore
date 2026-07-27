@@ -10,6 +10,7 @@ data/.config/
 data/.torch/
 data/.wget-hsts
 data/.nv/
+data/huggingface/
 
 # Raw assets / intermediate data
 data/raw_videos/
