@@ -1,0 +1,255 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="1200"
+  height="520"
+  viewBox="0 0 1200 520"
+  role="img"
+  aria-labelledby="title desc"
+>
+  <title id="title">THETIS — AI Motion Coach</title>
+  <desc id="desc">
+    A dark interface illustration showing real-time motion tracking, a reference
+    exercise, a form score, and adaptive music.
+  </desc>
+
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#05080d" />
+      <stop offset="0.55" stop-color="#09121b" />
+      <stop offset="1" stop-color="#0d1722" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#63f5d2" />
+      <stop offset="0.55" stop-color="#68b7ff" />
+      <stop offset="1" stop-color="#a78bfa" />
+    </linearGradient>
+    <radialGradient id="cyanGlow">
+      <stop offset="0" stop-color="#63f5d2" stop-opacity="0.2" />
+      <stop offset="1" stop-color="#63f5d2" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="violetGlow">
+      <stop offset="0" stop-color="#a78bfa" stop-opacity="0.16" />
+      <stop offset="1" stop-color="#a78bfa" stop-opacity="0" />
+    </radialGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#68b7ff" stroke-opacity="0.045" />
+    </pattern>
+    <filter id="softGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="7" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <clipPath id="frame">
+      <rect x="0" y="0" width="1200" height="520" rx="28" />
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#frame)">
+    <rect width="1200" height="520" fill="url(#bg)" />
+    <rect width="1200" height="520" fill="url(#grid)" />
+    <circle cx="180" cy="500" r="330" fill="url(#cyanGlow)" />
+    <circle cx="1110" cy="-30" r="360" fill="url(#violetGlow)" />
+    <path
+      d="M0 420C230 350 430 470 640 400s355-65 560-7v127H0Z"
+      fill="#63f5d2"
+      fill-opacity="0.018"
+    />
+
+    <!-- Brand -->
+    <g transform="translate(78 72)" filter="url(#softGlow)">
+      <path
+        d="M34 0 64 17v34L34 68 4 51V17Z"
+        fill="#63f5d2"
+        fill-opacity="0.045"
+        stroke="#63f5d2"
+        stroke-width="2"
+      />
+      <path
+        d="m17 40 9-14 10 19 14-20"
+        fill="none"
+        stroke="#63f5d2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="3"
+      />
+    </g>
+    <text
+      x="168"
+      y="111"
+      fill="#f3f8fb"
+      font-family="Inter, Arial, sans-serif"
+      font-size="46"
+      font-weight="800"
+      letter-spacing="8"
+    >
+      THETIS
+    </text>
+    <text
+      x="171"
+      y="141"
+      fill="#8291a5"
+      font-family="ui-monospace, SFMono-Regular, Consolas, monospace"
+      font-size="12"
+      font-weight="600"
+      letter-spacing="4"
+    >
+      AI MOTION COACH
+    </text>
+
+    <!-- Headline -->
+    <text
+      x="78"
+      y="245"
+      fill="#f3f8fb"
+      font-family="Inter, Arial, sans-serif"
+      font-size="50"
+      font-weight="700"
+      letter-spacing="-2"
+    >
+      Move with
+    </text>
+    <text
+      x="78"
+      y="302"
+      fill="url(#accent)"
+      font-family="Inter, Arial, sans-serif"
+      font-size="58"
+      font-weight="750"
+      letter-spacing="-3"
+    >
+      intelligence.
+    </text>
+    <text
+      x="80"
+      y="344"
+      fill="#aab7c7"
+      font-family="Inter, Arial, sans-serif"
+      font-size="17"
+    >
+      See the motion. Match the form. Generate the flow.
+    </text>
+
+    <!-- Feature pills -->
+    <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="11">
+      <g transform="translate(78 382)">
+        <rect width="155" height="36" rx="18" fill="#63f5d2" fill-opacity="0.055" stroke="#63f5d2" stroke-opacity="0.24" />
+        <circle cx="20" cy="18" r="4" fill="#63f5d2" />
+        <text x="34" y="22" fill="#bffcef" letter-spacing="1">LIVE POSE</text>
+      </g>
+      <g transform="translate(245 382)">
+        <rect width="165" height="36" rx="18" fill="#68b7ff" fill-opacity="0.05" stroke="#68b7ff" stroke-opacity="0.22" />
+        <path d="M18 23V12l9-2v11M18 16l9-2" fill="none" stroke="#68b7ff" stroke-linecap="round" stroke-width="1.5" />
+        <text x="38" y="22" fill="#c7e4ff" letter-spacing="1">GEN-AUDIO</text>
+      </g>
+      <g transform="translate(422 382)">
+        <rect width="125" height="36" rx="18" fill="#ff647c" fill-opacity="0.04" stroke="#ff647c" stroke-opacity="0.19" />
+        <path d="m17 16 4 7 4-10 5 7" fill="none" stroke="#ff8da0" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" />
+        <text x="39" y="22" fill="#ffc5cf" letter-spacing="1">rPPG</text>
+      </g>
+    </g>
+
+    <!-- Product UI -->
+    <g transform="translate(660 55)">
+      <rect
+        width="470"
+        height="410"
+        rx="23"
+        fill="#081019"
+        stroke="#a0bed3"
+        stroke-opacity="0.17"
+      />
+      <rect x="1" y="1" width="468" height="48" rx="22" fill="#ffffff" fill-opacity="0.018" />
+      <circle cx="25" cy="25" r="4" fill="#63f5d2" filter="url(#softGlow)" />
+      <text x="39" y="29" fill="#dce9f0" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="650">
+        TRAINING SESSION
+      </text>
+      <text x="375" y="30" fill="#f3f8fb" font-family="ui-monospace, monospace" font-size="15" font-weight="600">
+        29:42
+      </text>
+
+      <!-- Live frame -->
+      <rect x="18" y="64" width="286" height="270" rx="15" fill="#020507" stroke="#63f5d2" stroke-opacity="0.18" />
+      <rect x="31" y="78" width="88" height="24" rx="12" fill="#071612" stroke="#63f5d2" stroke-opacity="0.22" />
+      <circle cx="47" cy="90" r="3" fill="#63f5d2" />
+      <text x="58" y="94" fill="#a9f8e6" font-family="ui-monospace, monospace" font-size="8" letter-spacing="0.8">
+        TRACKING
+      </text>
+      <path d="M161 90v227M47 203h228" stroke="#63f5d2" stroke-opacity="0.05" />
+
+      <!-- Skeleton -->
+      <g
+        transform="translate(95 107)"
+        fill="none"
+        stroke="#63f5d2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="5"
+        filter="url(#softGlow)"
+      >
+        <circle cx="70" cy="20" r="13" fill="#63f5d2" fill-opacity="0.1" />
+        <path d="M70 35 68 101 42 152 30 207M68 101l35 48 25 55M68 55 23 86 3 125M68 55l47 20 29-33" />
+        <path d="M44 65h52M42 101h61" stroke-width="3" stroke-opacity="0.7" />
+        <g fill="#081019" stroke-width="3">
+          <circle cx="68" cy="55" r="5" />
+          <circle cx="23" cy="86" r="5" />
+          <circle cx="115" cy="75" r="5" />
+          <circle cx="42" cy="152" r="5" />
+          <circle cx="103" cy="149" r="5" />
+        </g>
+      </g>
+
+      <!-- Reference -->
+      <rect x="320" y="64" width="132" height="168" rx="14" fill="#05090e" stroke="#68b7ff" stroke-opacity="0.17" />
+      <text x="335" y="88" fill="#8291a5" font-family="ui-monospace, monospace" font-size="8" letter-spacing="0.8">
+        REFERENCE
+      </text>
+      <g transform="translate(344 103)" fill="none" stroke="#a78bfa" stroke-linecap="round" stroke-width="4">
+        <circle cx="41" cy="12" r="9" fill="#a78bfa" fill-opacity="0.12" />
+        <path d="M41 23 42 68 18 102 10 134M42 68l29 32 13 34M42 36 15 50 3 78M42 36l28 9 18-20" />
+      </g>
+
+      <!-- Score -->
+      <rect x="320" y="247" width="132" height="87" rx="14" fill="#63f5d2" fill-opacity="0.035" stroke="#63f5d2" stroke-opacity="0.2" />
+      <text x="335" y="270" fill="#8291a5" font-family="Inter, Arial, sans-serif" font-size="9" font-weight="600">
+        FORM SCORE
+      </text>
+      <text x="335" y="308" fill="#f3f8fb" font-family="ui-monospace, monospace" font-size="34" font-weight="600">
+        87
+      </text>
+      <text x="378" y="307" fill="#8291a5" font-family="ui-monospace, monospace" font-size="9">
+        / 100
+      </text>
+      <rect x="335" y="318" width="100" height="4" rx="2" fill="#ffffff" fill-opacity="0.08" />
+      <rect x="335" y="318" width="87" height="4" rx="2" fill="url(#accent)" />
+
+      <!-- Coach / waveform -->
+      <rect x="18" y="350" width="434" height="42" rx="12" fill="#ffffff" fill-opacity="0.018" stroke="#a0bed3" stroke-opacity="0.12" />
+      <circle cx="40" cy="371" r="7" fill="#63f5d2" fill-opacity="0.08" stroke="#63f5d2" stroke-opacity="0.5" />
+      <circle cx="40" cy="371" r="2" fill="#63f5d2" />
+      <text x="58" y="375" fill="#aab7c7" font-family="Inter, Arial, sans-serif" font-size="10">
+        Great rhythm — keep it going.
+      </text>
+      <g transform="translate(392 360)" fill="#a78bfa">
+        <rect width="3" height="20" y="2" rx="1.5" />
+        <rect x="7" width="3" height="24" rx="1.5" />
+        <rect x="14" width="3" height="16" y="4" rx="1.5" />
+        <rect x="21" width="3" height="22" y="1" rx="1.5" />
+        <rect x="28" width="3" height="12" y="6" rx="1.5" />
+      </g>
+    </g>
+  </g>
+
+  <rect
+    x="0.75"
+    y="0.75"
+    width="1198.5"
+    height="518.5"
+    rx="27.25"
+    fill="none"
+    stroke="#a0bed3"
+    stroke-opacity="0.16"
+    stroke-width="1.5"
+  />
+</svg>
