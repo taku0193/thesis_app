@@ -2,6 +2,7 @@ import hashlib
 import json
 import os
 import time
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, List, Optional
 
@@ -98,6 +99,7 @@ def _cleanup_outputs(out_dir: Path, keep: set[str]) -> None:
             meta.unlink()
 
 
+@lru_cache(maxsize=1)
 def _load_musicgen(model_id: str, device: str):
     try:
         import torch
@@ -112,7 +114,9 @@ def _load_musicgen(model_id: str, device: str):
     if device == "cuda" and not torch.cuda.is_available():
         raise HTTPException(status_code=500, detail="CUDA is not available on this host.")
 
+    logger.warning("MusicGen model loading: model=%s device=%s", model_id, device)
     model = MusicGen.get_pretrained(model_id, device=device)
+    logger.warning("MusicGen model ready: model=%s device=%s", model_id, device)
     return model
 
 
@@ -142,7 +146,7 @@ def generate_bgm(req: GenerateBgmRequest) -> GenerateBgmResponse:
         bpm = _clamp(bpm, 40, 200)
         prompt = _build_prompt(req, bpm)
 
-        model_id = os.environ.get("MUSICGEN_MODEL", "facebook/musicgen-large")
+        model_id = os.environ.get("MUSICGEN_MODEL", "facebook/musicgen-small")
         device = os.environ.get("MUSICGEN_DEVICE", "cuda")
 
         payload = {
@@ -191,6 +195,12 @@ def generate_bgm(req: GenerateBgmRequest) -> GenerateBgmResponse:
             torch.manual_seed(req.seed)
 
         try:
+            logger.warning(
+                "MusicGen generation started: model=%s duration=%s prompt=%s",
+                model_id,
+                req.duration,
+                prompt,
+            )
             wavs = model.generate([prompt])
         except Exception as exc:
             raise HTTPException(status_code=500, detail=f"MusicGen failed: {exc}") from exc

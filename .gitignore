@@ -15,6 +15,7 @@ data/.config/
 data/.torch/
 data/.wget-hsts
 data/.nv/
+data/huggingface/
 
 # === 生データ / 中間データ ===
 data/raw_videos/
