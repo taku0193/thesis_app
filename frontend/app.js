@@ -130,6 +130,7 @@ const els = {
   overlay: document.getElementById("overlay-canvas"),
   duration: document.getElementById("duration"),
   autoToggle: document.getElementById("auto-toggle"),
+  autoStatus: document.getElementById("auto-status"),
   endSession: document.getElementById("end-session"),
   sessionTime: document.getElementById("session-time"),
   sessionFill: document.getElementById("session-fill"),
@@ -194,10 +195,14 @@ function setAutoUi(enabled) {
   if (!els.autoToggle) {
     return;
   }
-  els.autoToggle.textContent = enabled ? "Auto: On" : "Auto: Off";
+  els.autoToggle.textContent = enabled ? "自動切替: オン" : "自動切替: オフ";
   els.autoToggle.classList.toggle("primary", enabled);
   els.autoToggle.classList.toggle("ghost", !enabled);
   els.autoToggle.setAttribute("aria-pressed", String(enabled));
+  els.autoToggle.closest("details")?.classList.toggle("auto-enabled", enabled);
+  if (els.autoStatus) {
+    els.autoStatus.textContent = enabled ? "自動 オン" : "自動 オフ";
+  }
 }
 
 const MP_INDEX = {
@@ -341,13 +346,13 @@ function renderTemplate(entry) {
   const assets = first.assets || {};
 
   els.exerciseTitle.textContent = meta.exercise || entry.clip_id || "Untitled";
-  els.exerciseMeta.textContent = `${meta.body_part || ""} · ${meta.intensity || ""} · ${entry.clip_id}`;
+  els.exerciseMeta.textContent = [meta.body_part, meta.intensity].filter(Boolean).join(" ・ ");
 
   els.metrics.innerHTML = `
-    <div><span>Difficulty</span><strong>${formatMetric(metrics.difficulty_score)}</strong></div>
-    <div><span>Speed</span><strong>${formatMetric(metrics.speed_mean)}</strong></div>
-    <div><span>Range of motion</span><strong>${formatMetric(metrics.rom_mean)}</strong></div>
-    <div><span>Subjects</span><strong>${people.length}</strong></div>
+    <div><span>難易度</span><strong>${formatMetric(metrics.difficulty_score)}</strong></div>
+    <div><span>動作速度</span><strong>${formatMetric(metrics.speed_mean)}</strong></div>
+    <div><span>可動域</span><strong>${formatMetric(metrics.rom_mean)}</strong></div>
+    <div><span>人数</span><strong>${people.length}</strong></div>
   `;
 
   els.assetLinks.innerHTML = `
@@ -378,8 +383,8 @@ async function init() {
     state.current = pickRandomTemplate();
     renderTemplate(state.current);
   } catch (err) {
-    els.exerciseTitle.textContent = "Failed to load templates";
-    els.exerciseMeta.textContent = err.message;
+    els.exerciseTitle.textContent = "お手本を読み込めませんでした";
+    els.exerciseMeta.textContent = "バックエンドへの接続を確認してください。";
   }
 }
 
@@ -390,7 +395,7 @@ els.shuffleBtn.addEventListener("click", () => {
 
 async function startCamera() {
   if (!navigator.mediaDevices?.getUserMedia) {
-    setCaptureStatus("CAMERA UNSUPPORTED");
+    setCaptureStatus("カメラ非対応");
     setCoachMessage("このブラウザではカメラを利用できません。");
     return;
   }
@@ -401,11 +406,12 @@ async function startCamera() {
     els.startCamera.disabled = true;
     els.startCamera.setAttribute("aria-busy", "true");
     els.startCamera.textContent = "接続中…";
-    setCaptureStatus("INITIALIZING");
+    setCaptureStatus("準備中");
     setCoachMessage("カメラとAIモデルを初期化しています。");
     await initHrCsvLogger();
     const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
     state.cameraStream = stream;
+    els.endSession.disabled = false;
     els.cameraVideo.srcObject = stream;
     els.cameraVideo.onloadedmetadata = () => {
       els.overlay.width = els.cameraVideo.videoWidth;
@@ -415,17 +421,18 @@ async function startCamera() {
     if (els.cameraVideo.paused) {
       els.cameraVideo.play().catch(() => {});
     }
-    setCaptureStatus("CAMERA ONLINE", true);
+    setCaptureStatus("カメラ接続済み", true);
     els.startCamera.textContent = "BGMを準備中…";
     setCoachMessage("映像を認識しました。AI BGMを生成しています。");
     startRppg();
     startBgm();
   } catch (err) {
     state.cameraStream = null;
+    els.endSession.disabled = true;
     els.startCamera.disabled = false;
     els.startCamera.setAttribute("aria-busy", "false");
     els.startCamera.textContent = "セッション開始";
-    setCaptureStatus("CAMERA ERROR");
+    setCaptureStatus("カメラエラー");
     setCoachMessage("カメラを開始できませんでした。アクセス許可を確認してください。");
   }
 }
@@ -545,6 +552,15 @@ function showSessionSummary(elapsedSeconds) {
     ).padStart(2, "0")}`;
   }
   els.sessionSummary.classList.add("show");
+  window.requestAnimationFrame(() => {
+    els.sessionSummary.focus({ preventScroll: true });
+    els.sessionSummary.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
+      block: "nearest",
+    });
+  });
 
   const summary = {
     started_at: state.sessionStart,
@@ -744,9 +760,10 @@ function endSession() {
   els.startCamera.disabled = false;
   els.startCamera.setAttribute("aria-busy", "false");
   els.startCamera.textContent = "セッション開始";
-  els.heartBadge.textContent = "♥ -- BPM";
+  els.endSession.disabled = true;
+  els.heartBadge.textContent = "♥ -- bpm";
   setAutoUi(false);
-  setCaptureStatus("SESSION COMPLETE");
+  setCaptureStatus("セッション終了");
   setCoachMessage("セッションを終了しました。おつかれさまでした。");
 }
 
@@ -911,14 +928,14 @@ function announceMinuteScore() {
     return;
   }
   const avg = samples.reduce((sum, item) => sum + item.score, 0) / samples.length;
-  const message = avg >= 80 ? "Excellent!" : avg >= 60 ? "Good!" : "Keep going!";
+  const message = avg >= 80 ? "とても良い動き！" : avg >= 60 ? "いいペース！" : "その調子！";
   els.minuteScore.replaceChildren();
   const signal = document.createElement("span");
   signal.className = "signal-icon";
   signal.setAttribute("aria-hidden", "true");
   els.minuteScore.append(
     signal,
-    document.createTextNode(`1分スコア: ${avg.toFixed(0)}点 · ${message}`)
+    document.createTextNode(`直近1分: ${avg.toFixed(0)}点 ・ ${message}`)
   );
   els.minuteScore.classList.add("show");
   window.setTimeout(() => {
@@ -1052,15 +1069,15 @@ function updateScore(score, worstIndex) {
   state.lastScore = clamped;
 
   if (clamped >= 60) {
-    els.judgement.textContent = "Good";
+    els.judgement.textContent = "いい動き";
     els.judgement.classList.add("good");
     els.judgement.classList.remove("fight");
-    state.lastGrade = "Good";
+    state.lastGrade = "いい動き";
   } else {
-    els.judgement.textContent = "Fight!";
+    els.judgement.textContent = "もう少し";
     els.judgement.classList.add("fight");
     els.judgement.classList.remove("good");
-    state.lastGrade = "Fight!";
+    state.lastGrade = "もう少し";
   }
 
   if (els.feedback) {
@@ -1167,7 +1184,7 @@ function startSessionWithBgm() {
   els.startCamera.disabled = true;
   els.startCamera.setAttribute("aria-busy", "false");
   els.startCamera.textContent = "セッション進行中";
-  setCaptureStatus("LIVE TRACKING", true);
+  setCaptureStatus("解析中", true);
   setCoachMessage("解析を開始しました。お手本に合わせて動きましょう。");
   if (els.sessionSummary) {
     els.sessionSummary.classList.remove("show");

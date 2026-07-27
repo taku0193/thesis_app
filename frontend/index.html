@@ -8,6 +8,10 @@
       name="description"
       content="AIがリアルタイムで動きを解析する、次世代モーショントレーニング体験。"
     />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23070b10'/%3E%3Cpath d='M32 8 52 19v26L32 56 12 45V19L32 8Z' fill='none' stroke='%2363f5d2' stroke-width='4'/%3E%3Cpath d='m21 35 7-10 7 14 9-13' fill='none' stroke='%2363f5d2' stroke-linecap='round' stroke-linejoin='round' stroke-width='4'/%3E%3C/svg%3E"
+    />
     <title>THETIS — AI Motion Coach</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
@@ -29,43 +33,22 @@
           <small>AI MOTION COACH</small>
         </span>
       </a>
-
-      <div class="system-status" aria-label="システム状態">
-        <span class="system-chip">
-          <span class="status-dot"></span>
-          SYSTEM ONLINE
-        </span>
-        <span class="system-chip system-chip-muted">VISION 33PT</span>
-        <span class="system-chip system-chip-muted">GEN-AUDIO</span>
-      </div>
     </header>
 
     <div class="app-shell">
-      <section class="dashboard-intro" aria-labelledby="page-title">
-        <div>
-          <p class="eyebrow">REAL-TIME BIOMECHANICS / 01</p>
-          <h1 id="page-title">Move with <span>intelligence.</span></h1>
-        </div>
-        <p class="intro-copy">
-          身体の動きを読み取り、フォーム・心拍・音楽をリアルタイムで最適化する
-          AIトレーニング・コックピット。
-        </p>
-      </section>
-
       <main class="stage">
         <section class="panel camera-panel" aria-labelledby="live-title">
           <div class="panel-header camera-panel-header">
             <div class="panel-heading">
-              <span class="panel-index">01</span>
               <div>
-                <p class="section-kicker">LIVE MOTION</p>
-                <h2 id="live-title">リアルタイム解析</h2>
+                <p class="section-kicker">LIVE</p>
+                <h1 id="live-title">あなたの動き</h1>
               </div>
             </div>
 
             <div class="session-meta">
               <div class="session-timer">
-                <span class="telemetry-label">SESSION REMAINING</span>
+                <span class="telemetry-label">残り時間</span>
                 <strong id="session-time" aria-live="polite">30:00</strong>
                 <div
                   class="session-bar"
@@ -78,15 +61,14 @@
                 </div>
               </div>
               <div id="heart-badge" class="heart-badge" aria-live="polite">
-                ♥ -- BPM
+                ♥ -- bpm
               </div>
             </div>
           </div>
 
           <div id="camera-frame" class="camera-frame">
             <div class="camera-placeholder" aria-hidden="true">
-              <div class="target-reticle"></div>
-              <span>CAMERA STANDBY</span>
+              <span>カメラはまだ開始されていません</span>
             </div>
             <video
               id="camera-video"
@@ -96,15 +78,12 @@
               aria-label="ライブカメラ映像"
             ></video>
             <canvas id="overlay-canvas" aria-hidden="true"></canvas>
-            <div class="frame-grid" aria-hidden="true"></div>
-            <div class="frame-corners" aria-hidden="true"></div>
 
             <div class="camera-hud camera-hud-top">
               <span id="capture-status" class="hud-pill">
                 <span class="hud-dot"></span>
-                CAPTURE READY
+                カメラ待機中
               </span>
-              <span class="hud-pill hud-pill-quiet">AI POSE / 33 POINTS</span>
             </div>
 
             <div id="exercise-alert" class="exercise-alert" role="status">
@@ -114,48 +93,62 @@
             <div class="camera-hud camera-hud-bottom">
               <div id="minute-score" class="minute-score" aria-live="polite">
                 <span class="signal-icon" aria-hidden="true"></span>
-                1分スコア: --
+                直近1分: --
               </div>
               <div id="bgm-loading" class="bgm-loading" role="status" aria-live="polite">
                 <span class="waveform" aria-hidden="true">
                   <i></i><i></i><i></i><i></i>
                 </span>
-                AI BGMを生成中
+                BGMを準備中
               </div>
             </div>
           </div>
 
           <div id="cheer-message" class="cheer-message" aria-live="polite">
             <span class="coach-orb" aria-hidden="true"></span>
-            <span>AI COACH</span>
             <strong id="coach-message">準備ができたら、セッションを始めよう。</strong>
           </div>
 
           <div class="control-deck" aria-label="セッション操作">
-            <label class="genre-control" for="music-genre">
-              <span class="control-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24">
-                  <path d="M9 18V5l11-2v13M9 9l11-2M6 21c1.7 0 3-1.1 3-2.5S7.7 16 6 16s-3 1.1-3 2.5S4.3 21 6 21Zm11-2c1.7 0 3-1.1 3-2.5S18.7 14 17 14s-3 1.1-3 2.5 1.3 2.5 3 2.5Z" />
-                </svg>
-              </span>
-              <span class="control-copy">
-                <span class="telemetry-label">GENERATIVE SOUND</span>
-                <input
-                  id="music-genre"
-                  type="text"
-                  placeholder="house, hiphop, techno..."
-                  autocomplete="off"
-                />
-              </span>
-            </label>
+            <details class="session-options">
+              <summary>
+                <span>音楽と自動切替の設定</span>
+                <span id="auto-status" class="auto-status">自動 オフ</span>
+              </summary>
+              <div class="options-content">
+                <label class="genre-control" for="music-genre">
+                  <span class="control-copy">
+                    <span class="telemetry-label">BGMの雰囲気（任意）</span>
+                    <input
+                      id="music-genre"
+                      type="text"
+                      placeholder="例：house、hiphop、techno"
+                      autocomplete="off"
+                    />
+                  </span>
+                </label>
+                <button
+                  id="auto-toggle"
+                  class="ghost toggle-control"
+                  type="button"
+                  aria-pressed="false"
+                >
+                  自動切替: オフ
+                </button>
+              </div>
+            </details>
 
-            <label class="duration-control" for="duration">
-              <span class="telemetry-label">CYCLE</span>
-              <span>
-                <input id="duration" type="number" value="30" min="5" step="1" disabled />
-                SEC
-              </span>
-            </label>
+            <input
+              id="duration"
+              class="visually-hidden"
+              type="number"
+              value="30"
+              min="5"
+              step="1"
+              disabled
+              aria-hidden="true"
+              tabindex="-1"
+            />
 
             <div class="control-actions">
               <button id="start-camera" class="primary action-start" type="button">
@@ -164,47 +157,38 @@
                 </svg>
                 セッション開始
               </button>
-              <button
-                id="auto-toggle"
-                class="ghost toggle-control"
-                type="button"
-                aria-pressed="false"
-              >
-                Auto: Off
-              </button>
-              <button id="end-session" class="ghost danger-control" type="button">
-                終了
+              <button id="end-session" class="ghost danger-control" type="button" disabled>
+                セッション終了
               </button>
             </div>
           </div>
 
-          <div id="session-summary" class="session-summary" role="dialog" aria-label="セッション結果">
+          <div
+            id="session-summary"
+            class="session-summary"
+            role="dialog"
+            aria-label="セッション結果"
+            tabindex="-1"
+          >
             <div class="summary-header">
               <div>
-                <p class="section-kicker">SESSION COMPLETE</p>
-                <div class="summary-title">パフォーマンスサマリー</div>
+                <p class="section-kicker">おつかれさまでした</p>
+                <div class="summary-title">セッション結果</div>
               </div>
-              <span class="summary-mark">THETIS / REPORT</span>
             </div>
             <div class="summary-grid">
               <div class="summary-item summary-item-hero">
-                <span>AVG SCORE</span>
+                <span>平均スコア</span>
                 <strong id="summary-score">--</strong>
+                <small>最高 <b id="summary-best">--</b></small>
               </div>
               <div class="summary-item">
-                <span>BEST</span>
-                <strong id="summary-best">--</strong>
-              </div>
-              <div class="summary-item">
-                <span>AVG BPM</span>
+                <span>平均心拍</span>
                 <strong id="summary-bpm">--</strong>
+                <small>最大 <b id="summary-peak">--</b> bpm</small>
               </div>
               <div class="summary-item">
-                <span>PEAK BPM</span>
-                <strong id="summary-peak">--</strong>
-              </div>
-              <div class="summary-item">
-                <span>DURATION</span>
+                <span>運動時間</span>
                 <strong id="summary-duration">--</strong>
               </div>
             </div>
@@ -214,31 +198,26 @@
         <section class="panel template-panel" aria-labelledby="drill-title">
           <div class="panel-header drill-header">
             <div class="panel-heading">
-              <span class="panel-index">02</span>
               <div>
-                <p class="section-kicker">ACTIVE DRILL</p>
-                <h2 id="drill-title">モーションガイド</h2>
+                <p class="section-kicker">GUIDE</p>
+                <h2 id="drill-title">お手本</h2>
               </div>
             </div>
             <button id="shuffle-btn" class="icon-button" type="button">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5" />
               </svg>
-              <span>SHUFFLE</span>
+              <span>変更</span>
             </button>
           </div>
 
           <div class="exercise-heading">
-            <p class="telemetry-label">CURRENT MOVEMENT</p>
+            <p class="telemetry-label">現在の種目</p>
             <h3 id="exercise-title">Loading...</h3>
             <p id="exercise-meta" class="muted"></p>
           </div>
 
           <div class="template-frame">
-            <div class="reference-label">
-              <span class="hud-dot"></span>
-              REFERENCE LOOP
-            </div>
             <video
               id="template-video"
               class="template-video"
@@ -247,65 +226,51 @@
               playsinline
               aria-label="お手本モーション"
             ></video>
-            <div class="template-scan" aria-hidden="true"></div>
           </div>
 
-          <div class="feedback-row">
-            <div id="judgement" class="judge-badge">READY</div>
-            <div>
-              <span class="telemetry-label">AI FEEDBACK</span>
-              <p id="feedback" class="muted">セッション開始後にフォームを解析します。</p>
+          <div id="score-gauge" class="score-console" style="--score: 0">
+            <div class="score-heading">
+              <div>
+                <span class="telemetry-label">フォームスコア</span>
+                <div class="score-value-row">
+                  <strong id="score-value">--</strong>
+                  <span>/ 100</span>
+                </div>
+              </div>
+              <div id="judgement" class="judge-badge">準備中</div>
             </div>
+            <div
+              class="score-bar"
+              role="progressbar"
+              aria-label="フォームスコア"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            >
+              <div id="score-fill" class="score-fill"></div>
+            </div>
+            <p class="score-hint">お手本に近い動きほど100に近づきます</p>
+            <p id="feedback" class="visually-hidden">セッション開始後にフォームを解析します。</p>
           </div>
 
-          <div class="score-console">
-            <div id="score-gauge" class="score-gauge" style="--score: 0">
-              <div class="score-gauge-inner">
-                <strong id="score-value">--</strong>
-                <span>MATCH</span>
+          <details class="detail-drawer">
+            <summary>種目の詳細</summary>
+            <div class="detail-drawer-content">
+              <div class="telemetry-block">
+                <div class="block-heading">
+                  <span class="telemetry-label">お手本データ</span>
+                </div>
+                <div id="metrics" class="metrics-grid"></div>
               </div>
-            </div>
-            <div class="score-detail">
-              <div class="score-copy">
-                <span class="telemetry-label">MOTION ACCURACY</span>
-                <strong>フォーム一致度</strong>
-              </div>
-              <div
-                class="score-bar"
-                role="progressbar"
-                aria-label="フォーム一致度"
-                aria-valuemin="0"
-                aria-valuemax="100"
-              >
-                <div id="score-fill" class="score-fill"></div>
-              </div>
-              <div class="score-scale" aria-hidden="true">
-                <span>0</span><span>OPTIMAL</span><span>100</span>
-              </div>
-            </div>
-          </div>
 
-          <div class="telemetry-block">
-            <div class="block-heading">
-              <span class="telemetry-label">MOVEMENT TELEMETRY</span>
-              <span class="data-live"><i></i> LIVE DATA</span>
+              <div class="data-footer">
+                <span class="telemetry-label">関連データ</span>
+                <div id="asset-links" class="asset-links"></div>
+              </div>
             </div>
-            <div id="metrics" class="metrics-grid"></div>
-          </div>
-
-          <div class="data-footer">
-            <span class="telemetry-label">SOURCE DATA</span>
-            <div id="asset-links" class="asset-links"></div>
-          </div>
+          </details>
         </section>
       </main>
     </div>
-
-    <footer class="app-footer">
-      <span>THETIS MOTION INTELLIGENCE</span>
-      <span>PRIVACY-FIRST / ON-DEVICE VISION</span>
-      <span>BUILD 01.2026</span>
-    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.5/face_mesh.js"></script>
